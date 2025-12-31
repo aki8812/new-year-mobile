@@ -151,6 +151,15 @@ document.getElementById('save-nickname-btn').onclick = () => {
     if (v) { nickname = v; localStorage.setItem('nickname', v); nickDisplay.innerText = v; document.getElementById('nickname-modal').style.display = 'none'; }
 };
 
+// Video Toggle Support
+const loadVid = (id) => { if (videoPlayer && videoPlayer.loadVideoById) videoPlayer.loadVideoById(id); };
+
+document.getElementById('btn-default-vid').onclick = () => loadVid('nzwtqgOXpfA');
+document.getElementById('btn-backup-vid').onclick = () => loadVid('1jnde6OlFwk');
+document.getElementById('btn-changhua').onclick = () => loadVid('Fua-K7Yjydw');
+document.getElementById('btn-101').onclick = () => loadVid('peujXnf_QjY');
+document.getElementById('btn-lihpao').onclick = () => loadVid('WWr8TgTlzXw');
+
 // 6. Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = function () {
