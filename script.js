@@ -151,14 +151,27 @@ document.getElementById('save-nickname-btn').onclick = () => {
     if (v) { nickname = v; localStorage.setItem('nickname', v); nickDisplay.innerText = v; document.getElementById('nickname-modal').style.display = 'none'; }
 };
 
-// Video Toggle Support
-const loadVid = (id) => { if (videoPlayer && videoPlayer.loadVideoById) videoPlayer.loadVideoById(id); };
+// Video List & Selector
+const mobileStreams = [
+    { name: "🔴 網站預設", id: "nzwtqgOXpfA" },
+    { name: "📺 台北跨年", id: "1jnde6OlFwk" },
+    { name: "🥚 彰化跨年", id: "Fua-K7Yjydw" },
+    { name: "🏙️ 中天101", id: "peujXnf_QjY" },
+    { name: "🎡 麗寶樂園", id: "WWr8TgTlzXw" },
+    { name: "🐘 象山 101", id: "z_fY1pj1VBw" }
+];
 
-document.getElementById('btn-default-vid').onclick = () => loadVid('nzwtqgOXpfA');
-document.getElementById('btn-backup-vid').onclick = () => loadVid('1jnde6OlFwk');
-document.getElementById('btn-changhua').onclick = () => loadVid('Fua-K7Yjydw');
-document.getElementById('btn-101').onclick = () => loadVid('peujXnf_QjY');
-document.getElementById('btn-lihpao').onclick = () => loadVid('WWr8TgTlzXw');
+const mSel = document.getElementById('stream-select');
+if (mSel) {
+    mobileStreams.forEach(s => {
+        let o = document.createElement('option');
+        o.value = s.id; o.innerText = s.name;
+        mSel.appendChild(o);
+    });
+    mSel.onchange = function () {
+        if (videoPlayer && videoPlayer.loadVideoById) videoPlayer.loadVideoById(this.value);
+    }
+}
 
 // 6. Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
