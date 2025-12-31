@@ -1,291 +1,454 @@
+/* ========== Global / Theme Variables (Discord-like) ========== */
 :root {
-    --bg: #2c2f33;
-    --panel: #36393f;
-    --brand: #5865f2;
-    --text: #fff;
+  --bg: #2c2f33;
+  /* Main background */
+  --bg2: #23272a;
+  /* Darker background (sidebar/header) */
+  --panel: #36393f;
+  /* Chat panel / card background */
+  --brand: #5865f2;
+  /* Primary Brand Color (Blurple) */
+  --brand-hover: #4752c4;
+  --text: #ffffff;
+  --text-muted: #b9bbbe;
+  --border: #202225;
+  --input-bg: #40444b;
+  --danger: #ed4245;
+  --success: #3ba55c;
+  --gold: #f1c40f;
+  /* For New Year accents */
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
+html,
 body {
-    margin: 0;
-    font-family: sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, "Microsoft JhengHei", sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  /* Prevent full page scroll, handle in containers */
 }
 
-/* Tab Nav */
-.tab-nav {
-    display: flex;
-    height: 50px;
-    background: var(--panel);
-    border-bottom: 1px solid #222;
+/* ========== Layout Grid ========== */
+.app-container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  /* Main Content | Chat Sidebar */
+  height: 100vh;
+  width: 100vw;
 }
 
-.tab-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 1rem;
-    font-weight: bold;
+@media (max-width: 900px) {
+  .app-container {
+    grid-template-columns: 1fr;
+    /* Stack on mobile */
+    grid-template-rows: 1fr 60%;
+    /* Top: Countdown, Bottom: Chat */
+  }
 }
 
-.tab-btn.active {
-    color: var(--brand);
-    border-bottom: 3px solid var(--brand);
+/* ========== Main Content Area (Countdown + Video) ========== */
+.main-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #2f3136 0%, #202225 100%);
+  overflow: hidden;
+  padding: 20px;
 }
 
-/* Content Areas */
-.tab-content {
-    display: none;
-    height: calc(100vh - 50px);
-    overflow-y: auto;
-    flex-direction: column;
+/* Background Particles/Canvas */
+#fireworks-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.tab-content.active {
-    display: flex;
+/* Countdown Timer */
+.countdown-container {
+  z-index: 10;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.5s ease;
 }
 
-/* Home Tab */
-.countdown-section {
-    text-align: center;
-    padding: 20px;
+/* Nickname Edit Button */
+.nickname-btn {
+  background: transparent;
+  border: none;
+  color: #b9bbbe;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nickname-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 10px rgba(241, 196, 15, 0.3);
 }
 
 .timer-box {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.time-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.number {
+  font-size: 5rem;
+  font-weight: 800;
+  font-family: 'Consolas', monospace;
+  line-height: 1;
+  background: linear-gradient(180deg, #fff, #ccc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.label {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .number {
+    font-size: 3rem;
+  }
+
+  .timer-box {
     gap: 10px;
-    margin-top: 10px;
-}
+  }
 
-.unit {
-    background: var(--panel);
-    padding: 10px;
-    border-radius: 8px;
-    min-width: 60px;
-}
-
-.unit span {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--brand);
-}
-
-.unit small {
-    font-size: 0.8rem;
-    color: #ccc;
-}
-
-.video-section {
-    padding: 10px;
-}
-
-.video-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-    color: #ccc;
-}
-
-.video-frame {
+  .countdown-container {
+    padding: 20px;
     width: 100%;
-    aspect-ratio: 16/9;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
+  }
 }
 
-.music-control {
-    text-align: center;
-    margin-top: 20px;
+/* ========== Video Player (Draggable & Resizable) ========== */
+.video-player-container {
+  position: absolute;
+  /* Initial Position */
+  bottom: 20px;
+  left: 20px;
+  width: 400px;
+  min-width: 250px;
+  min-height: 150px;
+  /* Aspect Ratio trick logic is tricky with resize:both, 
+     so we rely on user manually resizing to fit 16:9 or iframe filling 100% 
+  */
+  height: 225px;
+  z-index: 20;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  background: #000;
+  display: flex;
+  flex-direction: column;
+
+  /* Enable Resizing */
+  resize: both;
+  overflow: hidden;
+  /* Necessary for resize handle to work in some browsers */
 }
 
-#music-toggle-btn {
-    background: #444;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 1rem;
+/* Make iframe fill the container minus the handle */
+.video-player-container iframe {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  /* Fill remaining space */
+  border: none;
+  pointer-events: auto;
+  /* Enable interaction */
 }
 
-#music-toggle-btn.active {
-    background: #3ba55c;
+.drag-handle {
+  height: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  color: #aaa;
+  font-size: 0.8rem;
+  user-select: none;
+  flex-shrink: 0;
 }
 
-#music-prompt {
-    margin-top: 10px;
-    color: var(--brand);
-    font-size: 0.9rem;
-    animation: pulse 2s infinite;
-    cursor: pointer;
+.drag-handle:hover {
+  background: #111;
+  color: #fff;
 }
 
-/* Chat Tab */
-.chat-header {
-    padding: 10px;
-    background: var(--panel);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.video-controls-inline {
+  display: flex;
+  gap: 5px;
 }
 
-.chat-header h3 {
-    margin: 0;
+.channel-select {
+  background: #333;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  max-width: 120px;
 }
 
-.sm-btn {
-    background: none;
-    border: 1px solid #555;
-    color: #ccc;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 0.8rem;
+/* ========== Music Control Toggle ========== */
+.music-toggle-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: bold;
 }
 
+.music-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+}
+
+.music-toggle-btn.active {
+  background: #3ba55c;
+  /* Green for ON */
+  color: #fff;
+  border-color: #3ba55c;
+  box-shadow: 0 0 10px rgba(59, 165, 92, 0.4);
+}
+
+/* ========== Chat Input Area ========== */
+.input-wrapper {
+  background-color: var(--input-bg);
+  border-radius: 8px;
+  padding: 4px 8px 4px 16px;
+  /* Adjusted padding */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 12px 0;
+  font-size: 1rem;
+  outline: none;
+}
+
+.send-btn {
+  background: var(--brand);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+/* ========== Chat Messages ========== */
 .messages-list {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #202225 #2f3136;
+}
+
+.messages-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+  background-color: #2f3136;
+  border-radius: 4px;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+  background-color: #202225;
+  border-radius: 4px;
 }
 
 .message {
-    display: flex;
-    gap: 8px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 10px;
+  width: 100%;
 }
 
 .avatar {
-    width: 32px;
-    height: 32px;
-    background: var(--brand);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
 }
 
-.msg-body {
-    background: var(--panel);
-    padding: 8px 12px;
-    border-radius: 12px;
-    max-width: 80%;
+.message-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .username {
-    font-size: 0.8rem;
-    color: #ccc;
-    margin-bottom: 2px;
-    display: block;
+  font-weight: 600;
+  color: #fff;
+  font-size: 1rem;
 }
 
-.msg-text {
-    font-size: 0.95rem;
-    word-break: break-all;
+.timestamp {
+  font-size: 0.75rem;
+  color: #b9bbbe;
 }
 
-.input-area {
-    padding: 10px;
-    background: var(--panel);
-    display: flex;
-    gap: 8px;
+.text {
+  color: #dcddde;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
-#chat-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 20px;
-    border: none;
-    background: #222;
-    color: #fff;
+.send-btn:hover {
+  background: var(--brand-hover);
 }
 
-#send-btn {
-    background: var(--brand);
-    color: #fff;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-}
-
-/* Modal */
+/* ========== Modal ========== */
 .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
-    background: var(--panel);
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;
-    text-align: center;
+  background-color: var(--panel);
+  padding: 24px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .modal input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    background: #222;
-    border: 1px solid #444;
-    color: #fff;
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: white;
 }
 
 .modal button {
-    width: 100%;
-    padding: 10px;
-    background: var(--brand);
-    border: none;
-    color: #fff;
-    font-weight: bold;
+  background-color: var(--brand);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-/* Animations */
-@keyframes pulse {
-    0% {
-        opacity: 0.6
-    }
-
-    50% {
-        opacity: 1
-    }
-
-    100% {
-        opacity: 0.6
-    }
+.modal button:hover {
+  background-color: var(--brand-hover);
 }
 
-body.celebrate .countdown-section {
-    animation: pulse 0.5s infinite;
+/* Happy New Year Animation State */
+body.celebrate .main-content {
+  animation: bg-pulse 2s infinite alternate;
 }
 
-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 50;
+@keyframes bg-pulse {
+  0% {
+    background: radial-gradient(circle at center, #4a1c1c 0%, #202225 100%);
+  }
+
+  100% {
+    background: radial-gradient(circle at center, #5865f2 0%, #202225 100%);
+  }
+}
+
+body.celebrate .countdown-container {
+  border-color: var(--gold);
+  box-shadow: 0 0 50px rgba(241, 196, 15, 0.5);
 }
