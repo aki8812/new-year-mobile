@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>2026 跨年 - 手機版</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="../favicon.ico" />
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+
+<body>
+    <div class="mobile-app">
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-home">🏠 倒數 & 直播</button>
+            <button class="tab-btn" data-tab="tab-chat">💬 聊天室</button>
+        </nav>
+
+        <!-- Tab Content: Home -->
+        <div id="tab-home" class="tab-content active">
+            <div class="countdown-section">
+                <h2>距離 2026 還有</h2>
+                <div class="timer-box">
+                    <div class="unit"><span id="days">00</span><small>天</small></div>
+                    <div class="unit"><span id="hours">00</span><small>時</small></div>
+                    <div class="unit"><span id="minutes">00</span><small>分</small></div>
+                    <div class="unit"><span id="seconds">00</span><small>秒</small></div>
+                </div>
+            </div>
+
+            <div class="video-section">
+                <div class="video-header">
+                    <span>🔴 現場直播</span>
+                    <select id="stream-select"></select>
+                </div>
+                <!-- Video Holder -->
+                <div id="yt-player-placeholder" class="video-frame"></div>
+            </div>
+
+            <div class="music-control">
+                <button id="music-toggle-btn">🔇 音樂關閉</button>
+                <div id="music-prompt">🎵 點此播放背景音樂</div>
+            </div>
+
+            <!-- Hidden Players/Canvas -->
+            <div id="bg-music-player"></div>
+            <canvas id="fireworks-canvas"></canvas>
+        </div>
+
+        <!-- Tab Content: Chat -->
+        <div id="tab-chat" class="tab-content">
+            <div class="chat-header">
+                <h3>聊天室</h3>
+                <button id="nickname-btn" class="sm-btn">更改暱稱 (<span id="current-nickname"></span>)</button>
+            </div>
+
+            <div id="messages-list" class="messages-list">
+                <!-- Messages -->
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="chat-input" placeholder="說點什麼..." autocomplete="off">
+                <button id="send-btn">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="nickname-modal" class="modal">
+        <div class="modal-content">
+            <h3>設定暱稱</h3>
+            <input type="text" id="nickname-input" maxlength="15">
+            <button id="save-nickname-btn">儲存</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
