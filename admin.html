@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨年倒數 - Admin Control</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            overflow: auto;
+            padding: 20px;
+            background: #111;
+            color: #fff;
+        }
+
+        .admin-panel {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .control-group {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #5865f2;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .btn-play {
+            background: #3ba55c;
+        }
+
+        .btn-play:hover {
+            background: #2d7d46;
+        }
+
+        .btn-pause {
+            background: #faa61a;
+        }
+
+        .btn-pause:hover {
+            background: #e69612;
+        }
+
+        .btn-stop {
+            background: #ed4245;
+        }
+
+        .btn-stop:hover {
+            background: #c03537;
+        }
+
+        .btn-update {
+            background: #5865f2;
+        }
+
+        .btn-update:hover {
+            background: #4752c4;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+    </style>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+
+<body>
+    <div class="admin-panel">
+        <h1>Admin Control Center (DJ Mode)</h1>
+
+        <!-- Music Control -->
+        <div class="control-group">
+            <h2>🎵 背景音樂控制 (Background Music)</h2>
+            <p style="color:#aaa; font-size:0.9em;">即使沒有直播，也可以當 DJ 播放 YouTube 音樂給大家聽。</p>
+            <input type="text" id="music-url" placeholder="貼上 YouTube 歌曲網址 (例如: https://youtu.be/...)" />
+            <div class="btn-row">
+                <button class="btn-play" onclick="controlMusic('playing')">播放 (Play)</button>
+                <button class="btn-pause" onclick="controlMusic('paused')">暫停 (Pause)</button>
+                <button class="btn-stop" onclick="controlMusic('stopped')">停止 (Stop)</button>
+            </div>
+            <div class="status" id="music-status">狀態: 等待操作...</div>
+        </div>
+
+        <!-- Video Control -->
+        <div class="control-group">
+            <h2>📺 左下角直播影片 (Main Video)</h2>
+            <p style="color:#aaa; font-size:0.9em;">更換所有人的左下角直播畫面。</p>
+            <input type="text" id="video-url" placeholder="貼上 YouTube 影片網址" />
+            <div class="btn-row">
+                <button class="btn-update" onclick="updateVideo()">更換影片 (Update)</button>
+            </div>
+            <div class="status" id="video-status">目前影片 ID: <span id="current-video-id">-</span></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCnG-QCodF4kXpAT7btOe3NKg7JP4F3kKw",
+            authDomain: "minecraft-server-472103.firebaseapp.com",
+            databaseURL: "https://minecraft-server-472103-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "minecraft-server-472103",
+            storageBucket: "minecraft-server-472103.firebasestorage.app",
+            messagingSenderId: "544378525433",
+            appId: "1:544378525433:web:32e8493487dab0054d3428",
+            measurementId: "G-RM0QEWX4MY"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Music Control
+        function controlMusic(status) {
+            const urlInput = document.getElementById('music-url');
+            const videoId = extractVideoId(urlInput.value);
+
+            if (status === 'playing' && !videoId && !currentMusicId) {
+                alert('請先輸入有效的 YouTube 網址');
+                return;
+            }
+
+            const updates = {
+                status: status,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            if (videoId) updates.videoId = videoId; // Only update ID if new one provided
+
+            db.ref('admin/music').update(updates)
+                .then(() => document.getElementById('music-status').innerText = `狀態: 已發送 ${status}`)
+                .catch(err => {
+                    console.error(err);
+                    if (err.code === 'PERMISSION_DENIED') {
+                        alert('權限不足！請到 Firebase Console > Realtime Database > Rules 將 .read 和 .write 設為 true。\n\nPermission Denied! Please set .read and .write to true in your Firebase Console Rules.');
+                    } else {
+                        alert('Error: ' + err.message);
+                    }
+                });
+        }
+
+        // Video Control
+        function updateVideo() {
+            const urlInput = document.getElementById('video-url');
+            const videoId = extractVideoId(urlInput.value);
+
+            if (!videoId) {
+                alert('無效的 YouTube 網址');
+                return;
+            }
+
+            db.ref('admin/video').set({
+                videoId: videoId,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            })
+                .then(() => document.getElementById('video-status').innerText = '影片已更新！')
+                .catch(err => {
+                    console.error(err);
+                    if (err.code === 'PERMISSION_DENIED') {
+                        alert('權限不足！請到 Firebase Console > Realtime Database > Rules 將 .read 和 .write 設為 true。\n\nPermission Denied! Please set .read and .write to true in your Firebase Console Rules.');
+                    } else {
+                        alert('Error: ' + err.message);
+                    }
+                });
+        }
+
+        // Listen for current state to update UI
+        let currentMusicId = null;
+        db.ref('admin/music').on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                currentMusicId = data.videoId;
+                document.getElementById('music-status').innerText = `目前: ${data.status} (ID: ${data.videoId})`;
+            }
+        });
+
+        db.ref('admin/video').on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                document.getElementById('current-video-id').innerText = data.videoId;
+            }
+        });
+    </script>
+</body>
+
+</html>
