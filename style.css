@@ -15,7 +15,10 @@ body {
     background: var(--bg);
     color: var(--text);
     height: 100vh;
+    /* Fallback */
+    height: 100dvh;
     overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Tab Nav */
@@ -24,6 +27,7 @@ body {
     height: 50px;
     background: var(--panel);
     border-bottom: 1px solid #222;
+    flex-shrink: 0;
 }
 
 .tab-btn {
@@ -44,6 +48,8 @@ body {
 .tab-content {
     display: none;
     height: calc(100vh - 50px);
+    /* Fallback */
+    height: calc(100dvh - 50px);
     overflow-y: auto;
     flex-direction: column;
 }
