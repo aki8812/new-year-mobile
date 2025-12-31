@@ -21,12 +21,25 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 let musicPlayer, videoPlayer;
 let currentMusicState = { videoId: null, status: 'stopped' };
+let pendingMusicId = null; // New
 
 function onYouTubeIframeAPIReady() {
     musicPlayer = new YT.Player('bg-music-player', {
         height: '0', width: '0', videoId: '',
-        playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'loops': 1 },
-        events: { 'onReady': () => syncMusic(), 'onStateChange': () => { } }
+        playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1 },
+        events: {
+            'onReady': () => syncMusic(),
+            'onStateChange': (e) => {
+                if (e.data === YT.PlayerState.ENDED) {
+                    if (pendingMusicId) {
+                        musicPlayer.loadVideoById(pendingMusicId);
+                        pendingMusicId = null;
+                    } else {
+                        musicPlayer.playVideo();
+                    }
+                }
+            }
+        }
     });
 
     videoPlayer = new YT.Player('yt-player-placeholder', {
@@ -57,14 +70,25 @@ database.ref('admin/music').on('value', (s) => {
 
 function syncMusic() {
     if (!musicPlayer || !musicPlayer.loadVideoById) return;
+
+    // ID Sync with Queue
     if (currentMusicState.videoId) {
         let cur = musicPlayer.getVideoData();
-        if (!cur || cur.video_id !== currentMusicState.videoId)
-            musicPlayer.loadVideoById(currentMusicState.videoId);
+        if (!cur || cur.video_id !== currentMusicState.videoId) {
+            const state = musicPlayer.getPlayerState();
+            if (state === 1) { // Playing
+                pendingMusicId = currentMusicState.videoId;
+            } else {
+                musicPlayer.loadVideoById(currentMusicState.videoId);
+                pendingMusicId = null;
+            }
+        } else {
+            if (pendingMusicId === currentMusicState.videoId) pendingMusicId = null;
+        }
     }
 
     if (currentMusicState.status === 'playing' && isMusicEnabled) {
-        musicPlayer.playVideo();
+        if (musicPlayer.getPlayerState() !== 1) musicPlayer.playVideo();
     } else {
         musicPlayer.pauseVideo();
     }
