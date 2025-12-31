@@ -2,140 +2,84 @@
 <html lang="zh-TW">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>2026 跨年倒數</title>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>2026 跨年 - 手機版</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon.ico" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
 
-    <!-- Firebase Compat Scripts -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Main Content (Countdown & Visuals) -->
-        <div class="main-content">
-            <canvas id="fireworks-canvas"></canvas>
+    <div class="mobile-app">
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-home">🏠 倒數 & 直播</button>
+            <button class="tab-btn" data-tab="tab-chat">💬 聊天室</button>
+        </nav>
 
-            <!-- Location/Stream Selector (Top Left) -->
-            <div
-                style="position:absolute; top:20px; left:20px; z-index:30; display:flex; align-items:center; gap:10px;">
-                <span style="color:#aaa; font-weight:bold; font-size:0.9rem;">📍 直播地區:</span>
-                <select id="stream-select" class="channel-select"
-                    style="padding:5px 10px; font-size:1rem; border-radius:20px; background:#202225; border:1px solid #40444b; color:#fff; cursor:pointer; outline:none; box-shadow:0 3px 10px rgba(0,0,0,0.3);"></select>
-            </div>
-
-            <!-- Music Control Toggle -->
-            <button id="music-toggle-btn" class="music-toggle-btn" title="開關背景音樂">
-                🔇 音樂關閉
-            </button>
-
-            <!-- Hidden Music Player Container -->
-            <div id="music-player-container"
-                style="position:absolute; top:-9999px; left:-9999px; opacity:0; pointer-events:none;">
-                <div id="bg-music-player"></div>
-            </div>
-
-            <!-- Music Autoplay Prompt -->
-            <div id="music-prompt"
-                style="display:none; position:absolute; top:20px; left:50%; transform:translateX(-50%); background:rgba(88, 101, 242, 0.9); padding:10px 20px; border-radius:30px; cursor:pointer; z-index:50; color:white; font-weight:bold; box-shadow:0 5px 15px rgba(0,0,0,0.3); animation: bounce 2s infinite;">
-                🎵 DJ 正在播放音樂，點擊加入派對！
-            </div>
-
-            <div class="countdown-container">
-                <div class="title">距離 2026 新年還有</div>
+        <!-- Tab Content: Home -->
+        <div id="tab-home" class="tab-content active">
+            <div class="countdown-section">
+                <h2>距離 2026 還有</h2>
                 <div class="timer-box">
-                    <div class="time-unit">
-                        <div class="number" id="days">00</div>
-                        <div class="label">天</div>
-                    </div>
-                    <div class="time-unit">
-                        <div class="number" id="hours">00</div>
-                        <div class="label">時</div>
-                    </div>
-                    <div class="time-unit">
-                        <div class="number" id="minutes">00</div>
-                        <div class="label">分</div>
-                    </div>
-                    <div class="time-unit">
-                        <div class="number" id="seconds">00</div>
-                        <div class="label">秒</div>
-                    </div>
+                    <div class="unit"><span id="days">00</span><small>天</small></div>
+                    <div class="unit"><span id="hours">00</span><small>時</small></div>
+                    <div class="unit"><span id="minutes">00</span><small>分</small></div>
+                    <div class="unit"><span id="seconds">00</span><small>秒</small></div>
                 </div>
             </div>
 
-            <!-- Live Stream Player (Fixed at bottom left) -->
-            <!-- Live Stream Player (Draggable/Resizable) -->
-            <div class="video-player-container" id="video-container">
-                <div class="drag-handle" id="drag-handle">
-                    <span>&#10021; 拖曳移動 (Drag)</span>
+            <div class="video-section">
+                <div class="video-header">
+                    <span>🔴 現場直播</span>
+                    <select id="stream-select"></select>
                 </div>
-                <div id="yt-player-placeholder"></div>
+                <!-- Video Holder -->
+                <div id="yt-player-placeholder" class="video-frame"></div>
             </div>
+
+            <div class="music-control">
+                <button id="music-toggle-btn">🔇 音樂關閉</button>
+                <div id="music-prompt">🎵 點此播放背景音樂</div>
+            </div>
+
+            <!-- Hidden Players/Canvas -->
+            <div id="bg-music-player"></div>
+            <canvas id="fireworks-canvas"></canvas>
         </div>
 
-        <!-- Right Sidebar (Chat) -->
-        <div class="sidebar">
+        <!-- Tab Content: Chat -->
+        <div id="tab-chat" class="tab-content">
             <div class="chat-header">
-                <div class="chat-title">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-                            fill="#5865F2" />
-                    </svg>
-                    跨年閒聊區
-                </div>
-                <div style="display:flex; align-items:center; gap:5px;">
-                    <div id="current-nickname"
-                        style="color: #bbb; font-size: 0.85em; max-width: 80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                    </div>
-                    <button class="nickname-btn" title="更改暱稱">✎</button>
-                </div>
+                <h3>聊天室</h3>
+                <button id="nickname-btn" class="sm-btn">更改暱稱 (<span id="current-nickname"></span>)</button>
             </div>
 
-            <div class="messages-list" id="messages-list">
-                <!-- Messages will appear here -->
-                <div class="message" style="opacity: 0.5;">
-                    <div class="message-content">
-                        <div class="text" style="font-style:italic; font-size:0.8em; color:#888;">歡迎來到 2026 跨年倒數聊天室...
-                        </div>
-                    </div>
-                </div>
+            <div id="messages-list" class="messages-list">
+                <!-- Messages -->
             </div>
 
             <div class="input-area">
-                <div class="input-wrapper">
-                    <input type="text" id="chat-input" class="chat-input" placeholder="發送訊息..." autocomplete="off" />
-                    <button id="send-btn" class="send-btn">➤</button>
-                </div>
+                <input type="text" id="chat-input" placeholder="說點什麼..." autocomplete="off">
+                <button id="send-btn">➤</button>
             </div>
         </div>
     </div>
 
-    <!-- Nickname Modal -->
+    <!-- Modals -->
     <div id="nickname-modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; color: #fff;">設定您的暱稱</h3>
-            <p style="color:#aaa; font-size:0.9em;">在聊天室中顯示的名字</p>
-            <button id="save-nickname-btn">確認更換</button>
+            <h3>設定暱稱</h3>
+            <input type="text" id="nickname-input" maxlength="15">
+            <button id="save-nickname-btn">儲存</button>
         </div>
     </div>
-
-    <style>
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translate(-50%, 0);
-            }
-
-            50% {
-                transform: translate(-50%, -10px);
-            }
-        }
-    </style>
 
     <script src="script.js"></script>
 </body>
