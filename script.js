@@ -79,7 +79,11 @@ function syncMusic() {
             if (state === 1) { // Playing
                 pendingMusicId = currentMusicState.videoId;
             } else {
-                musicPlayer.loadVideoById(currentMusicState.videoId);
+                if (isMusicEnabled) {
+                    musicPlayer.loadVideoById(currentMusicState.videoId);
+                } else {
+                    musicPlayer.cueVideoById(currentMusicState.videoId);
+                }
                 pendingMusicId = null;
             }
         } else {
@@ -148,24 +152,169 @@ database.ref('admin/video').on('value', (s) => {
 });
 
 // 4. Countdown
+// 4. Countdown & Fireworks (Mobile Optimized)
+let fireworksInterval;
+let memeInterval;
+let isCelebrated = false;
+
 function updateCountdown() {
     const target = new Date((new Date().getFullYear() + 1) + "-01-01T00:00:00+08:00").getTime();
     const diff = target - new Date().getTime();
+
     if (diff <= 0) {
-        document.body.classList.add('celebrate');
-        // Simple firework trigger could go here
+        if (!isCelebrated) celebrate();
+        // Reset counters to 00
+        ['days', 'hours', 'minutes', 'seconds'].forEach(id => document.getElementById(id).innerText = "00");
         return;
     }
+
     const d = Math.floor(diff / (86400000));
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('days').innerText = String(d).padStart(2, '0');
+
+    const elDays = document.getElementById('days');
+    if (elDays) elDays.innerText = String(d).padStart(2, '0');
     document.getElementById('hours').innerText = String(h).padStart(2, '0');
     document.getElementById('minutes').innerText = String(m).padStart(2, '0');
     document.getElementById('seconds').innerText = String(s).padStart(2, '0');
 }
 setInterval(updateCountdown, 1000);
+
+// Celebration Logic
+function celebrate() {
+    isCelebrated = true;
+    document.body.classList.add('celebrate');
+    // Mobile toast or title update? 
+    // Title is likely inside 'home' tab. Let's try to update h2 if exists.
+    const h2 = document.querySelector('.countdown-section h2');
+    if (h2) h2.innerText = `HAPPY NEW YEAR ${new Date().getFullYear() + 1}!`;
+
+    startFireworks();
+    spawnMemes();
+
+    // End after 6 mins
+    setTimeout(() => {
+        clearInterval(memeInterval);
+        clearInterval(fireworksInterval);
+    }, 360000);
+}
+
+// Fireworks System
+const canvas = document.getElementById('fireworks-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+    constructor(x, y, color, velocityMultiplier = 1) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        const speed = (Math.random() - 0.5) * 8 * velocityMultiplier;
+        this.velocity = { x: speed, y: (Math.random() - 0.5) * 8 * velocityMultiplier };
+        this.alpha = 1;
+        this.friction = 0.96;
+        this.gravity = 0.04;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+    update() {
+        this.velocity.x *= this.friction;
+        this.velocity.y *= this.friction;
+        this.velocity.y += this.gravity;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.alpha -= 0.008;
+    }
+}
+
+function startFireworks() {
+    animateFireworks();
+    fireworksInterval = setInterval(() => {
+        spawnFireworkBatch(30); // Fewer particles for mobile perf
+    }, 800);
+
+    // Grand Finale
+    setTimeout(() => {
+        clearInterval(fireworksInterval);
+        grandFinale();
+    }, 360000);
+}
+
+function spawnFireworkBatch(count, x, y, velocityMult = 1) {
+    const launchX = x !== undefined ? x : Math.random() * canvas.width;
+    const launchY = y !== undefined ? y : Math.random() * (canvas.height / 2);
+    const color = `hsl(${Math.random() * 360}, 60%, 60%)`;
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(launchX, launchY, color, velocityMult));
+    }
+}
+
+function grandFinale() {
+    // Show toast if possible, or just visual
+    // Intense bursts
+    let finaleCount = 0;
+    const finaleInt = setInterval(() => {
+        spawnFireworkBatch(60, canvas.width * 0.5, canvas.height * 0.3, 1.5);
+        finaleCount++;
+        if (finaleCount > 10) {
+            clearInterval(finaleInt);
+            setTimeout(() => document.body.classList.remove('celebrate'), 5000);
+        }
+    }, 500);
+}
+
+function animateFireworks() {
+    requestAnimationFrame(animateFireworks);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, index) => {
+        if (p.alpha > 0) { p.update(); p.draw(); }
+        else { particles.splice(index, 1); }
+    });
+}
+
+function spawnMemes() {
+    memeInterval = setInterval(() => {
+        const el = document.createElement('div');
+        el.innerText = ['🎉', '🐲', '🧨', '🧧', '✨'][Math.floor(Math.random() * 5)];
+        el.style.position = 'absolute';
+        el.style.left = Math.random() * 90 + '%';
+        el.style.top = Math.random() * 90 + '%';
+        el.style.fontSize = '3rem';
+        el.style.animation = 'floatUp 3s ease-out';
+        el.style.zIndex = 5;
+        document.body.appendChild(el); // Append to body for mobile
+        setTimeout(() => el.remove(), 3000);
+    }, 800); // Slower for mobile
+
+    if (!document.getElementById('meme-style')) {
+        const style = document.createElement('style');
+        style.id = 'meme-style';
+        style.innerHTML = `
+          @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
+            100% { transform: translateY(-100px) scale(1); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+    }
+}
 
 // 5. Chat & Nickname
 // 5. Chat & Nickname (Pagination Logic)
