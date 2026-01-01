@@ -47,7 +47,12 @@ function onYouTubeIframeAPIReady() {
         videoId: 'nzwtqgOXpfA', // Default
         playerVars: { 'autoplay': 0, 'mute': 0, 'controls': 1 },
         events: {
-            // Removed Exclusive Audio Logic for Mobile
+            'onReady': () => {
+                const mSel = document.getElementById('stream-select');
+                if (mSel && mSel.value === 'admin_default' && lastAdminVideoId) {
+                    videoPlayer.loadVideoById(lastAdminVideoId);
+                }
+            }
         }
     });
 }
