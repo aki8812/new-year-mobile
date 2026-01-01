@@ -141,7 +141,8 @@ body {
 
 .music-control {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 40px;
+    /* Increased from 20px */
 }
 
 #music-toggle-btn {
@@ -282,6 +283,19 @@ body {
     color: rgba(255, 255, 255, 0.6);
     margin-top: 4px;
     text-align: right;
+}
+
+.delete-btn {
+    background: #ed4245;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    margin-left: auto;
+    /* Push to right */
+    cursor: pointer;
+    line-height: 1.2;
 }
 
 .avatar,
