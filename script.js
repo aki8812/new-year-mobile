@@ -47,14 +47,7 @@ function onYouTubeIframeAPIReady() {
         videoId: 'nzwtqgOXpfA', // Default
         playerVars: { 'autoplay': 0, 'mute': 0, 'controls': 1 },
         events: {
-            // Exclusive Audio Logic for Mobile
-            'onStateChange': (e) => {
-                if (e.data === YT.PlayerState.PLAYING) {
-                    if (musicPlayer && musicPlayer.pauseVideo) musicPlayer.pauseVideo();
-                } else if (e.data === YT.PlayerState.PAUSED) {
-                    if (isMusicEnabled && currentMusicState.status === 'playing') musicPlayer.playVideo();
-                }
-            }
+            // Removed Exclusive Audio Logic for Mobile
         }
     });
 }
@@ -530,10 +523,29 @@ function addDeleteButton(div) {
 }
 
 function deleteMessage(key) {
-    if (confirm('刪除此訊息?')) {
-        messagesRef.child(key).remove();
-    }
+    // Show custom modal instead of confirm()
+    msgToDelete = key;
+    document.getElementById('delete-modal').style.display = 'flex';
 }
+
+// Delete Modal UI
+let msgToDelete = null;
+const deleteModal = document.getElementById('delete-modal');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+cancelDeleteBtn.onclick = () => {
+    deleteModal.style.display = 'none';
+    msgToDelete = null;
+};
+
+confirmDeleteBtn.onclick = () => {
+    if (msgToDelete) {
+        messagesRef.child(msgToDelete).remove();
+        deleteModal.style.display = 'none';
+        msgToDelete = null;
+    }
+};
 
 messagesRef.on('child_removed', (snap) => {
     const key = snap.key;
