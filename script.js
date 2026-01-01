@@ -368,10 +368,132 @@ function createMessageElement(key, data) {
     return div;
 }
 
-// ... (omitted code) ...
+// Load Initial
+async function loadInitialMessages() {
+    const snapshot = await messagesRef.orderByChild('timestamp').limitToLast(30).once('value');
+    if (snapshot.exists()) {
+        let maxTime = 0;
+        let minTime = Infinity;
+        let count = 0;
+        const fragment = document.createDocumentFragment();
+
+        snapshot.forEach(snap => {
+            const msg = snap.val();
+            if (!appState.messages.has(snap.key)) {
+                appState.messages.set(snap.key, msg);
+                if (msg.timestamp > maxTime) maxTime = msg.timestamp;
+                if (msg.timestamp < minTime) minTime = msg.timestamp;
+                fragment.appendChild(createMessageElement(snap.key, msg));
+                count++;
+            }
+        });
+        chatList.appendChild(fragment);
+        chatList.scrollTop = chatList.scrollHeight;
+
+        appState.latestMessageTime = maxTime + 1;
+        appState.oldestMessageTime = minTime;
+        appState.hasMoreOldMessages = count === 30;
+    } else {
+        appState.hasMoreOldMessages = false;
+        appState.latestMessageTime = Date.now();
+    }
+    appState.isInitialising = false;
+    startRealtimeListener();
+}
+
+function startRealtimeListener() {
+    messagesRef.orderByChild('timestamp').startAt(appState.latestMessageTime).on('child_added', (snap) => {
+        if (appState.messages.has(snap.key)) return;
+        const msg = snap.val();
+        appState.messages.set(snap.key, msg);
+        appState.latestMessageTime = msg.timestamp;
+        const el = createMessageElement(snap.key, msg);
+        chatList.appendChild(el);
+        chatList.scrollTop = chatList.scrollHeight;
+    });
+}
+
+// Load More
+async function loadMoreMessages() {
+    if (appState.isLoadingMore || !appState.hasMoreOldMessages) return;
+    appState.isLoadingMore = true;
+
+    const snapshot = await messagesRef.orderByChild('timestamp').endBefore(appState.oldestMessageTime).limitToLast(30).once('value');
+    if (snapshot.exists()) {
+        const oldScrollHeight = chatList.scrollHeight;
+        const oldScrollTop = chatList.scrollTop;
+        const fragment = document.createDocumentFragment();
+
+        let minTime = appState.oldestMessageTime;
+        let count = 0;
+        const newMsgs = [];
+
+        snapshot.forEach(snap => {
+            const msg = snap.val();
+            if (!appState.messages.has(snap.key)) {
+                newMsgs.push({ key: snap.key, msg });
+                if (msg.timestamp < minTime) minTime = msg.timestamp;
+                count++;
+            }
+        });
+
+        newMsgs.sort((a, b) => a.msg.timestamp - b.msg.timestamp);
+        newMsgs.forEach(item => {
+            appState.messages.set(item.key, item.msg);
+            fragment.appendChild(createMessageElement(item.key, item.msg));
+        });
+
+        chatList.insertBefore(fragment, chatList.firstChild);
+        const newScrollHeight = chatList.scrollHeight;
+        chatList.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
+
+        appState.oldestMessageTime = minTime;
+        appState.hasMoreOldMessages = count === 30;
+    } else {
+        appState.hasMoreOldMessages = false;
+    }
+    appState.isLoadingMore = false;
+}
+
+if (chatList) {
+    chatList.addEventListener('scroll', () => {
+        if (chatList.scrollTop < 50 && !appState.isLoadingMore && !appState.isInitialising) {
+            loadMoreMessages();
+        }
+    });
+}
+
+loadInitialMessages();
 
 // Nickname UI
-// ...
+const nickDisplay = document.getElementById('current-nickname');
+const nickModal = document.getElementById('nickname-modal');
+const nickInput = document.getElementById('nickname-input');
+const cancelNickBtn = document.getElementById('cancel-nickname-btn');
+const saveNickBtn = document.getElementById('save-nickname-btn');
+
+nickDisplay.innerText = nickname;
+
+document.getElementById('nickname-btn').onclick = () => {
+    nickInput.value = nickname;
+    nickModal.style.display = 'flex';
+};
+
+cancelNickBtn.onclick = () => {
+    nickModal.style.display = 'none';
+    nickInput.value = nickname;
+};
+
+saveNickBtn.onclick = () => {
+    const v = nickInput.value.trim();
+    if (v) {
+        nickname = v;
+        localStorage.setItem('nickname', v);
+        nickDisplay.innerText = v;
+        nickModal.style.display = 'none';
+        updateAllMessagesForNickname();
+    }
+};
 
 // Retroactive Sync & Delete Logic
 function updateAllMessagesForNickname() {
