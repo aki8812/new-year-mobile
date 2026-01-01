@@ -461,12 +461,82 @@ loadInitialMessages();
 
 // Nickname UI
 const nickDisplay = document.getElementById('current-nickname');
+const nickModal = document.getElementById('nickname-modal');
+const nickInput = document.getElementById('nickname-input');
+const cancelNickBtn = document.getElementById('cancel-nickname-btn');
+const saveNickBtn = document.getElementById('save-nickname-btn');
+
 nickDisplay.innerText = nickname;
-document.getElementById('nickname-btn').onclick = () => document.getElementById('nickname-modal').style.display = 'flex';
-document.getElementById('save-nickname-btn').onclick = () => {
-    const v = document.getElementById('nickname-input').value;
-    if (v) { nickname = v; localStorage.setItem('nickname', v); nickDisplay.innerText = v; document.getElementById('nickname-modal').style.display = 'none'; }
+
+document.getElementById('nickname-btn').onclick = () => {
+    nickInput.value = nickname;
+    nickModal.style.display = 'flex';
 };
+
+cancelNickBtn.onclick = () => {
+    nickModal.style.display = 'none';
+    nickInput.value = nickname;
+};
+
+saveNickBtn.onclick = () => {
+    const v = nickInput.value.trim();
+    if (v) {
+        nickname = v;
+        localStorage.setItem('nickname', v);
+        nickDisplay.innerText = v;
+        nickModal.style.display = 'none';
+        updateAllMessagesForNickname();
+    }
+};
+
+// Retroactive Sync & Delete Logic
+function updateAllMessagesForNickname() {
+    const allMsgs = document.querySelectorAll('.message');
+    allMsgs.forEach(div => {
+        const bubbleName = div.querySelector('.bubble-name').innerText;
+        const isSelf = bubbleName === nickname;
+
+        if (isSelf) {
+            div.classList.add('self');
+            div.classList.remove('other');
+            addDeleteButton(div);
+        } else {
+            div.classList.add('other');
+            div.classList.remove('self');
+            const btn = div.querySelector('.delete-btn');
+            if (btn) btn.remove();
+        }
+    });
+}
+
+function addDeleteButton(div) {
+    if (div.querySelector('.delete-btn')) return;
+    const bubble = div.querySelector('.bubble');
+    const btn = document.createElement('button');
+    btn.className = 'delete-btn';
+    // Use an icon or text suitable for mobile
+    btn.innerHTML = '🗑️';
+    btn.onclick = (e) => {
+        e.stopPropagation(); // Prevent bubble click if any
+        deleteMessage(div.dataset.msgId);
+    };
+    bubble.appendChild(btn);
+}
+
+function deleteMessage(key) {
+    if (confirm('刪除此訊息?')) {
+        messagesRef.child(key).remove();
+    }
+}
+
+messagesRef.on('child_removed', (snap) => {
+    const key = snap.key;
+    if (appState.messages.has(key)) {
+        appState.messages.delete(key);
+        const el = document.querySelector(`.message[data-msg-id="${key}"]`);
+        if (el) el.remove();
+    }
+});
 
 // 6. Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {

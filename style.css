@@ -94,11 +94,40 @@ body {
     padding: 10px;
 }
 
+/* Mobile Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2f3136;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #5865f2;
+    border-radius: 3px;
+}
+
+/* Stream Select Styling (Dark & Rounded) */
+#stream-select {
+    appearance: none;
+    /* Remove native arrow usually, but user might want it. Use background image or basic */
+    background-color: #2f3136;
+    color: #fff;
+    border: 1px solid #40444b;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    outline: none;
+    margin-left: 10px;
+}
+
+/* Video Header Fix */
 .video-header {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
     color: #ccc;
 }
 
